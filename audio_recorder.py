@@ -25,7 +25,6 @@ class AudioRecorder:
         self.max_recording_time = max_recording_time
         self.stop_callback = stop_callback
         self.is_recording = False
-        self.audio_data = []
         self.frames = []
         self.stream = None
         self.start_time = 0
@@ -61,7 +60,6 @@ class AudioRecorder:
                 return False
             
             self.is_recording = True
-            self.audio_data = []
             self.frames = []
             self.chunk_counter = 0
             self.start_time = time.time()
@@ -108,7 +106,6 @@ class AudioRecorder:
         with self._lock:
             if self.is_recording:
                 self.frames.append(in_data)
-                self.audio_data.append(in_data)
                 
                 # Handle chunk processing if callback is provided
                 if hasattr(self, 'chunk_callback') and self.chunk_callback:
@@ -118,7 +115,6 @@ class AudioRecorder:
                     # Check if we've collected enough frames for a chunk
                     if self.current_chunk_frames >= self.chunk_frames_target:
                         # Process the chunk in a separate thread to avoid blocking audio
-                        import threading
                         def process_chunk():
                             try:
                                 temp_file = self._save_chunk_to_temp_file(self.current_chunk_data)
@@ -163,13 +159,12 @@ class AudioRecorder:
             self._cleanup()
             
             # Check recording duration and save
-            audio_data = self.frames if self.frames else self.audio_data
-            if audio_data:
-                duration = (len(audio_data) * self.chunk_size) / self.sample_rate
+            if self.frames:
+                duration = (len(self.frames) * self.chunk_size) / self.sample_rate
                 if duration < 1.0:
                     raise ValueError("Recording must be at least 1 second long")
                 
-                return self._save_to_temp_file(audio_data)
+                return self._save_to_temp_file(self.frames)
             return None
         except Exception as e:
             print(f"Stop recording error: {str(e)}")
@@ -220,23 +215,6 @@ class AudioRecorder:
             
             return temp_filename
     
-    def _save_to_file(self, filename: str = "recorded_audio.wav") -> str:
-        """Legacy file saving method for backward compatibility."""
-        if self.debug_mode:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"final_{timestamp}.wav"
-            filepath = os.path.join(self.debug_dir, filename)
-        else:
-            filepath = os.path.join(os.path.dirname(__file__), filename)
-        
-        audio_data = self.frames if self.frames else self.audio_data
-        with wave.open(filepath, 'wb') as wf:
-            wf.setnchannels(self.channels)
-            wf.setsampwidth(self.audio.get_sample_size(self.format))
-            wf.setframerate(self.sample_rate)
-            wf.writeframes(b''.join(audio_data))
-        
-        return filepath
     
     def _cleanup(self):
         """Internal method to clean up stream resources."""

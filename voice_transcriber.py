@@ -317,44 +317,7 @@ class VoiceTranscriber(rumps.App):
         
         threading.Thread(target=finish_stop, daemon=True).start()
     
-    def add_transcribed_text(self, text):
-        # Clean up the text by removing filler words from the end
-        cleaned_text = self.clean_transcript_end(text)
-        
-        # Only add non-empty text
-        if cleaned_text:
-            if self.transcribed_text:
-                self.transcribed_text += " " + cleaned_text
-            else:
-                self.transcribed_text = cleaned_text
-            if self.debug_mode:
-                print(f"📝 Added transcribed text: '{cleaned_text}'")
-                print(f"📝 Total transcribed text now: '{self.transcribed_text}'")
-        else:
-            if self.debug_mode:
-                print(f"⚠️ Cleaned text was empty from: '{text}'")
     
-    def clean_transcript_end(self, text):
-        """Remove filler words from the end of transcript"""
-        if not text:
-            return text
-            
-        # List of filler words to remove from the end
-        filler_words = ["uh", "um", "hmm", "ah", "er", "eh", "yeah", "mm", "mm-hmm", 
-                       "uh-huh", "mm-mm", "uh-oh", "ah-ha", "mm-kay", "uh-uh"]
-        
-        # Split into words and work backwards
-        words = text.strip().split()
-        if not words:
-            return text
-            
-        # Remove filler words from the end
-        while words and words[-1].lower().rstrip('.,!?;:') in filler_words:
-            words.pop()
-        
-        # Rejoin the cleaned words
-        cleaned = " ".join(words)
-        return cleaned if cleaned else ""  # Return empty string if everything was removed (like single "uh")
     
     def copy_to_clipboard(self):
         if self.transcribed_text:
@@ -370,23 +333,7 @@ class VoiceTranscriber(rumps.App):
             if self.debug_mode:
                 print("ℹ️ No transcribed text to copy.")
     
-    def clear_text(self, sender):
-        self.transcribed_text = ""
-        print("🗑️ Transcribed text cleared.")
     
-    def show_text(self, sender):
-        if self.transcribed_text:
-            # Create a temporary file to display the text
-            import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-                f.write(self.transcribed_text)
-                temp_path = f.name
-            
-            # Open the file with default text editor
-            os.system(f'open "{temp_path}"')
-            print(f"📄 Opened transcribed text in default editor: {temp_path}")
-        else:
-            print("ℹ️ No transcribed text to display.")
     
     def toggle_auto_copy(self, sender):
         self.auto_copy = not self.auto_copy
@@ -426,15 +373,6 @@ class VoiceTranscriber(rumps.App):
         status = "enabled" if self.debug_mode else "disabled"
         print(f"🐛 Debug mode {status}")
     
-    def show_debug_info(self, sender):
-        if self.debug_mode and self.recorder:
-            debug_dir = self.recorder.get_debug_directory()
-            if debug_dir:
-                print(f"🗂️ Audio files saved to: {debug_dir}")
-            else:
-                print("🗂️ Debug directory not yet created.")
-        else:
-            print("ℹ️ Debug mode is disabled. Audio files will be deleted after transcription.")
 
 
 if __name__ == "__main__":
