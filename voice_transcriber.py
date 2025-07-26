@@ -234,8 +234,8 @@ class VoiceTranscriber(rumps.App):
             # Start the recorder first (it will buffer audio during countdown)
             if self.debug_mode:
                 print("🔍 DEBUG: About to call recorder.start_recording()")
-            result = self.recorder.start_recording(callback=on_audio_chunk, chunk_duration=3.0, 
-                                         ready_callback=on_recording_ready, use_stream_callback=True)
+            result = self.recorder.start_recording(callback=on_audio_chunk, 
+                                         ready_callback=on_recording_ready)
             if self.debug_mode:
                 print(f"🔍 DEBUG: recorder.start_recording() returned: {result}")
             

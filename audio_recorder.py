@@ -27,7 +27,6 @@ class AudioRecorder:
         self.is_recording = False
         self.audio_data = []
         self.frames = []
-        self.recording_thread = None
         self.stream = None
         self.start_time = 0
         self.audio = None
@@ -56,8 +55,7 @@ class AudioRecorder:
             os.makedirs(self.debug_dir)
         
     def start_recording(self, callback: Optional[Callable[[str], None]] = None, 
-                       chunk_duration: float = 5.0, ready_callback: Optional[Callable[[], None]] = None,
-                       use_stream_callback: bool = True):
+                       ready_callback: Optional[Callable[[], None]] = None):
         with self._lock:
             if self.is_recording or not self._initialize_audio():
                 return False
@@ -68,14 +66,11 @@ class AudioRecorder:
             self.chunk_counter = 0
             self.start_time = time.time()
         
-        if use_stream_callback:
-            return self._start_with_stream_callback(callback, ready_callback)
-        else:
-            return self._start_with_manual_threading(callback, chunk_duration, ready_callback)
+        return self._start_recording_internal(callback, ready_callback)
     
-    def _start_with_stream_callback(self, callback: Optional[Callable[[str], None]] = None,
-                                   ready_callback: Optional[Callable[[], None]] = None):
-        """Start recording using PyAudio's stream callback (recommended approach)."""
+    def _start_recording_internal(self, callback: Optional[Callable[[str], None]] = None,
+                                 ready_callback: Optional[Callable[[], None]] = None):
+        """Start recording using PyAudio's stream callback."""
         try:
             # Store the callback for chunk processing if provided
             self.chunk_callback = callback
@@ -89,7 +84,7 @@ class AudioRecorder:
                 rate=self.sample_rate,
                 input=True,
                 frames_per_buffer=self.chunk_size,
-                stream_callback=self._audio_callback_with_chunks
+                stream_callback=self._audio_callback
             )
             
             # Start the timer for max recording time if specified
@@ -107,71 +102,9 @@ class AudioRecorder:
                 self.is_recording = False
             return False
     
-    def _start_with_manual_threading(self, callback: Optional[Callable[[str], None]] = None,
-                                    chunk_duration: float = 5.0, 
-                                    ready_callback: Optional[Callable[[], None]] = None):
-        """Legacy manual threading approach for backward compatibility."""
-        def record():
-            try:
-                stream = self.audio.open(
-                    format=self.format,
-                    channels=self.channels,
-                    rate=self.sample_rate,
-                    input=True,
-                    frames_per_buffer=self.chunk_size
-                )
-                
-                # Allow audio system to stabilize before signaling ready
-                time.sleep(1.0)
-                
-                # Signal that recording is actually ready
-                if ready_callback:
-                    ready_callback()
-                
-                chunk_frames = int(self.sample_rate * chunk_duration)
-                frames_collected = 0
-                current_chunk = []
-                
-                while self.is_recording:
-                    data = stream.read(self.chunk_size, exception_on_overflow=False)
-                    current_chunk.append(data)
-                    self.audio_data.append(data)  # Accumulate all audio data
-                    frames_collected += self.chunk_size
-                    
-                    if frames_collected >= chunk_frames:
-                        if callback:
-                            temp_file = self._save_chunk_to_temp_file(current_chunk)
-                            callback(temp_file)
-                        
-                        current_chunk = []
-                        frames_collected = 0
-                
-                if current_chunk and callback:
-                    temp_file = self._save_chunk_to_temp_file(current_chunk)
-                    callback(temp_file)
-                    
-                stream.stop_stream()
-                stream.close()
-                
-            except Exception as e:
-                print(f"Recording error: {e}")
-                with self._lock:
-                    self.is_recording = False
-        
-        self.recording_thread = threading.Thread(target=record)
-        self.recording_thread.start()
-        return True
     
     def _audio_callback(self, in_data, frame_count, time_info, status):
-        """Audio stream callback to collect frames."""
-        with self._lock:
-            if self.is_recording:
-                self.frames.append(in_data)
-                self.audio_data.append(in_data)
-        return (in_data, pyaudio.paContinue)
-    
-    def _audio_callback_with_chunks(self, in_data, frame_count, time_info, status):
-        """Audio stream callback that also processes chunks for real-time transcription."""
+        """Audio stream callback that processes chunks for real-time transcription."""
         with self._lock:
             if self.is_recording:
                 self.frames.append(in_data)
@@ -221,16 +154,13 @@ class AudioRecorder:
                 return None
             self.is_recording = False
         
-        # Add delay to capture final words for manual threading mode
-        if final_delay > 0 and self.recording_thread is not None:
+        # Add delay to capture final words
+        if final_delay > 0:
             time.sleep(final_delay)
         
         try:
-            # Clean up stream and thread resources
+            # Clean up stream resources
             self._cleanup()
-            
-            if self.recording_thread:
-                self.recording_thread.join()
             
             # Check recording duration and save
             audio_data = self.frames if self.frames else self.audio_data
