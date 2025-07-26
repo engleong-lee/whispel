@@ -30,7 +30,7 @@ class VoiceTranscriber(rumps.App):
     
     def setup_menu(self):
         # Create menu items with essential options
-        self.record_menu_item = rumps.MenuItem("🎤 Start (Option+Space)", callback=self.toggle_recording)
+        self.record_menu_item = rumps.MenuItem("🎤 Start (⌥ Space)", callback=self.toggle_recording)
         self.auto_copy_menu = rumps.MenuItem("Auto-copy to clipboard", callback=self.toggle_auto_copy)
         self.auto_paste_menu = rumps.MenuItem("Auto-paste after recording", callback=self.toggle_auto_paste)
         self.debug_mode_menu = rumps.MenuItem("Debug mode", callback=self.toggle_debug_mode)
@@ -49,7 +49,7 @@ class VoiceTranscriber(rumps.App):
         ]
     
     def setup_hotkey(self):
-        """Setup global hotkey Option+Space for recording toggle"""
+        """Setup global hotkey ⌥ Space for recording toggle"""
         try:
             # Try the modern pynput approach first
             def on_hotkey():
@@ -57,10 +57,10 @@ class VoiceTranscriber(rumps.App):
             
             # Set up the global hotkey listener
             self.hotkey_listener = keyboard.GlobalHotKeys({
-                '<alt>+<space>': on_hotkey  # Option+Space (alt is Option on Mac)
+                '<alt>+<space>': on_hotkey  # ⌥ Space (alt is Option on Mac)
             })
             self.hotkey_listener.start()
-            print("🔥 Global hotkey enabled: Option+Space to toggle recording")
+            print("🔥 Global hotkey enabled: ⌥ Space to toggle recording")
             
         except Exception as e:
             print(f"⚠️ GlobalHotKeys failed: {e}")
@@ -84,7 +84,7 @@ class VoiceTranscriber(rumps.App):
                 if key == keyboard.Key.alt_l or key == keyboard.Key.alt_r:
                     self.alt_pressed = True
                 elif key == keyboard.Key.space:
-                    if self.alt_pressed:  # Option+Space combination
+                    if self.alt_pressed:  # ⌥ Space combination
                         self.toggle_recording(None)
                     self.space_pressed = True
             except AttributeError:
@@ -104,7 +104,7 @@ class VoiceTranscriber(rumps.App):
             on_release=on_release
         )
         self.hotkey_listener.start()
-        print("🔥 Global hotkey enabled: Option+Space to toggle recording (manual mode)")
+        print("🔥 Global hotkey enabled: ⌥ Space to toggle recording (manual mode)")
     
     
     
@@ -162,7 +162,7 @@ class VoiceTranscriber(rumps.App):
             
             # Reset UI state
             self.is_recording = False
-            self.record_menu_item.title = "🎤 Start (Option+Space)"
+            self.record_menu_item.title = "🎤 Start (⌥ Space)"
             self.title = "🎤"
             
             # Auto-paste if enabled and we have transcribed text
@@ -208,7 +208,7 @@ class VoiceTranscriber(rumps.App):
         if self.debug_mode:
             print(f"🔍 DEBUG: Cleared transcribed_text, now: '{self.transcribed_text}'")
         # Update menu text
-        self.record_menu_item.title = "🎤 Stop (Option+Space)"
+        self.record_menu_item.title = "🎤 Stop (⌥ Space)"
         print("🎙️ Initializing recorder and starting countdown...")
         if self.debug_mode:
             print(f"🔍 DEBUG: Recorder object: {self.recorder}")
@@ -256,7 +256,7 @@ class VoiceTranscriber(rumps.App):
     def stop_recording(self):
         self.is_recording = False
         # Update menu text
-        self.record_menu_item.title = "🎤 Start (Option+Space)"
+        self.record_menu_item.title = "🎤 Start (⌥ Space)"
         print("🛑 Stopping recording... Capturing final words for 1 second...")
         
         def finish_stop():

@@ -2,10 +2,12 @@
 
 A macOS menu bar application for real-time speech-to-text transcription with automatic clipboard copying and pasting.
 
+![Menu Bar Screenshot](menubar_screenshot.png)
+
 ## Features
 
 - **Menu bar app**: Clean single microphone icon in your menu bar
-- **Global hotkey**: Option+Space to start/stop recording from anywhere
+- **Global hotkey**: ⌥ Space to start/stop recording from anywhere
 - **High-quality transcription**: Powered by MLX parakeet model with complete audio processing
 - **Auto-copy & paste**: Automatically copies to clipboard and pastes into active app
 - **Smart cleanup**: Removes filler words ("uh", "hmm") from end of transcripts
@@ -54,9 +56,9 @@ The microphone icon (🎤) will appear in your menu bar.
 ### Recording Methods
 
 **Method 1: Global Hotkey (Recommended)**
-- Press `Option+Space` to start recording
+- Press `⌥ Space` to start recording
 - Speak your text
-- Press `Option+Space` again to stop
+- Press `⌥ Space` again to stop
 - Text automatically appears in the active application
 
 **Method 2: Menu Bar Click**
@@ -129,7 +131,7 @@ Right-click the menu bar icon to access:
 - Enable debug mode to save audio files for analysis
 
 ### Global hotkey not working
-- Make sure no other app is using Option+Space
+- Make sure no other app is using ⌥ Space
 - Try restarting the application
 - Check terminal output for hotkey initialization messages
 - If pynput compatibility issues occur, use menu bar instead
@@ -142,7 +144,7 @@ Right-click the menu bar icon to access:
 - **Audio processing**: Complete audio transcription for best quality
 - **Timing**: 1s start countdown, 1s end buffer (improved responsiveness)
 - **Cleanup**: Removes trailing filler words (uh, um, hmm, ah, er, eh)
-- **Hotkey**: Option+Space (global, works from any application)
+- **Hotkey**: ⌥ Space (global, works from any application)
 
 ## Development
 
