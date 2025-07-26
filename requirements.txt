@@ -1,0 +1,6 @@
+pyaudio
+pyperclip
+numpy
+parakeet_mlx
+rumps
+pynput
