@@ -1,0 +1,74 @@
+# -*- mode: python ; coding: utf-8 -*-
+# PyInstaller spec file template for Whispel
+# This template will be used to generate the actual Whispel.spec file
+
+a = Analysis(
+    ['voice_transcriber.py'],
+    pathex=[],
+    binaries=[],
+    datas=[
+        ('{{PARAKEET_MLX_PATH}}', 'parakeet_mlx'),
+        ('{{MLX_PATH}}', 'mlx')
+    ],
+    hiddenimports=[
+        'parakeet_mlx', 
+        'parakeet_mlx.parakeet', 
+        'mlx', 
+        'mlx.core', 
+        'mlx.nn', 
+        'mlx._reprlib_fix',
+        'scipy',
+        'scipy.signal',
+        'scipy.signal.windows'
+    ],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=['pyi_rth_mlx.py'],
+    excludes=['torch', 'transformers'],
+    noarchive=False,
+    optimize=0,
+)
+
+pyz = PYZ(a.pure)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    [],
+    exclude_binaries=True,
+    name='Whispel',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='Whispel',
+)
+
+app = BUNDLE(
+    coll,
+    name='Whispel.app',
+    icon=None,
+    bundle_identifier='com.whispel.app',
+    info_plist={
+        'NSMicrophoneUsageDescription': 'Whispel needs access to your microphone to transcribe speech to text.',
+        'CFBundleName': 'Whispel',
+        'CFBundleVersion': '1.0.0',
+        'CFBundleShortVersionString': '1.0',
+        'LSUIElement': True,
+    }
+)

@@ -146,12 +146,61 @@ Right-click the menu bar icon to access:
 - **Cleanup**: Removes trailing filler words (uh, um, hmm, ah, er, eh)
 - **Hotkey**: ⌥ Space (global, works from any application)
 
+## Building Standalone App
+
+To create a standalone macOS app bundle:
+
+### Prerequisites for Building
+```bash
+pip install pyinstaller
+```
+
+### Build Process
+```bash
+# Auto-generate spec file and build app
+python build.py
+```
+
+This will:
+1. Automatically detect your MLX/parakeet installation paths
+2. Generate `Whispel.spec` with correct paths for your environment
+3. Build the standalone app bundle at `dist/Whispel.app`
+
+### Manual Build (Advanced)
+If the automated build script doesn't work:
+
+1. **Generate spec file from template**:
+   ```bash
+   # Find your package paths
+   python -c "import parakeet_mlx; print(parakeet_mlx.__path__[0])"
+   python -c "import mlx; print(mlx.__path__[0])"
+   
+   # Edit Whispel.spec.template and replace {{PARAKEET_MLX_PATH}} and {{MLX_PATH}}
+   # Save as Whispel.spec
+   ```
+
+2. **Build with PyInstaller**:
+   ```bash
+   pyinstaller Whispel.spec
+   ```
+
+### Build Files
+- `Whispel.spec.template` - Template for PyInstaller spec file
+- `build.py` - Automated build script
+- `pyi_rth_mlx.py` - Runtime hook for MLX libraries (essential for bundled app)
+
+**Note**: `Whispel.spec` is not checked into version control as it contains environment-specific paths.
+
 ## Development
 
 ### File Structure
 - `voice_transcriber.py` - Main application
-- `audio_recorder.py` - Audio recording functionality
+- `voice_transcriber_debug.py` - Debug version with extensive logging
+- `audio_recorder.py` - Audio recording functionality  
 - `requirements.txt` - Python dependencies
+- `build.py` - Automated build script for standalone app
+- `Whispel.spec.template` - PyInstaller spec file template
+- `pyi_rth_mlx.py` - PyInstaller runtime hook for MLX
 - `README.md` - This documentation
 
 ### Contributing
@@ -159,7 +208,8 @@ Right-click the menu bar icon to access:
 2. Create a feature branch
 3. Make your changes
 4. Test thoroughly on macOS
-5. Submit a pull request
+5. Test the build process with `python build.py`
+6. Submit a pull request
 
 ## License
 
